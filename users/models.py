@@ -16,14 +16,21 @@ from events.models import Event
 from .managers import UserManager
 
 DEPARTMENTS = (
-  ("COMP", "Computer"),
+  ("Comp A", "Computer A"),
+  ("Comp B", "Computer B"),
   ("IT", "IT"),
   ("EXTC", "EXTC"),
-  ("MECH", "Mechanical"),
-  ("ELEC", "Electrical"),
+  ("Mech A", "Mechanical A"),
+  ("Mech B", "Mechanical B"),
+  ("Elec", "Electrical"),
   ("OTHER", "Other")
 )
 
+gender = (
+  ("M", "Male"),
+  ("F", "Female"),
+  ("N", "Prefer Not to Say")
+)
 def make_roll_no() -> int:
   return random.randint(9000000, 10000000)
 
@@ -46,12 +53,15 @@ class User(AbstractBaseUser, PermissionsMixin):
   userpassword = models.TextField(blank=True, null=True)
   money_owed = models.DecimalField(_("Money Owed"),decimal_places=2,max_digits=10, default=0.00)
   has_filled_profile = models.BooleanField(_("Has Filled Profile"), default=True)
-  criteria = models.TextField(_("Criteria JSON (DONT FILL THIS)"), default='{"C": 1, "T": 2, "S": 0}')
+  criteria = models.TextField(_("Criteria JSON (DONT FILL THIS)"), default='{"C": 0, "T": 0, "S": 0}')
+  daywise_criteria = models.TextField(_("daywise_Criteria JSON (DONT FILL THIS)"), default='{"1": 0, "2": 0, "3": 0}')
   email_send = models.BooleanField(_("Email Send"), default=False)
   is_staff = models.BooleanField(default=False)
   is_superuser = models.BooleanField(default=False)
   is_active = models.BooleanField(default=True)
   date_joined = models.DateTimeField(default=timezone.now)
+  gender = models.CharField(_('Gender'),max_length=10,blank=True, null=True, choices=gender)
+
 
   USERNAME_FIELD = 'roll_no'
   REQUIRED_FIELDS = ['email',]
@@ -70,6 +80,8 @@ class UserRequest(models.Model):
   phone_no = models.CharField(_("Phone Number"),blank=False,  max_length=32)
   college = models.CharField(_("College"), max_length=256,blank=False)
   is_approved = models.BooleanField(_("Is Approved"), default=False)
+  gender = models.CharField(_('Gender'),max_length=10,blank=True, null=True, choices=gender)
+
 
   USERNAME_FIELD = 'email'
   REQUIRED_FIELDS = ['email','name', 'department', 'semester', 'phone_no', 'college']
@@ -119,6 +131,8 @@ class Participation(models.Model):
   part_id = models.CharField(_("Participation Id"), default=uuid4,max_length=36, unique=True, primary_key=True)
   team_name = models.CharField(_("Team Name"), max_length=256,blank=False)
   event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="participations")
+  captain_paid = models.BooleanField("captain paid", default=False)
+  captain = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="captain", null=True, blank=True)
   members = models.ManyToManyField(User, related_name='participations')
   transaction = models.ForeignKey(Transaction, on_delete=models.SET_NULL, related_name="participations", null=True, blank=True)
   is_verified = models.BooleanField(_("Is Verified"), default=False)
@@ -129,11 +143,29 @@ class Participation(models.Model):
 @receiver(pre_delete, sender=Participation)
 def update_criteria_after_delete(sender, instance, using, **kwargs):
   def update_criteria(user, event):
+    # criteria = json.loads(user.criteria)
+    # criteria[event.category] -= 1
+    # print(criteria, event.category)
+    # user.criteria = json.dumps(criteria)
     criteria = json.loads(user.criteria)
+    daywise_criteria = json.loads(user.daywise_criteria)
+    print(event.category)
+    print("mathewa laex hellloansfanfanfkj")
+    print("daywise_Criteria",daywise_criteria)
     criteria[event.category] -= 1
-    print(criteria, event.category)
+    if event.day == 1:
+        daywise_criteria["1"] -= 1
+    elif event.day == 2:
+        daywise_criteria["2"] -= 1
+    elif event.day == 3:
+        daywise_criteria["3"] -= 1
+    user.daywise_criteria = json.dumps(daywise_criteria)
+    print("mathewa laex hellloansfanfanfkj")
+    print("daywise_Criteria",user.daywise_criteria)
+    print("00event.dayunregister",event.day)
     user.criteria = json.dumps(criteria)
     user.save()
+
 
   members = instance.members.all()
   for m in members:

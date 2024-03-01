@@ -174,6 +174,7 @@ class ExcelDataAdmin(admin.ModelAdmin):
                             department=row['Department'],
                             semester=row['Semester'],
                             phone_no=row['Phone No'],
+                            gender = row['Gender'],
                             userpassword = pwd,
                             is_phone_no_verified=True,
                             has_filled_profile=True,

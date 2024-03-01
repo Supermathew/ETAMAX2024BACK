@@ -184,14 +184,16 @@ class UserCheckout(APIView):
 
     def check_criteria(user) -> bool:
       criteria = json.loads(user.criteria)
+      daywise_criteria = json.loads(user.daywise_criteria)
       print(criteria)
-      if criteria['C'] >= 2 and criteria['T'] >= 1:
+      if criteria['C'] >= 2 and criteria['T'] >= 1 and daywise_criteria["1"] >=1 and daywise_criteria["2"] >=1 and daywise_criteria["3"] >= 1:
         return False
       else:
         return True
 
 
-    participations = request.data['participations']
+    # participations = request.data['participations']
+    participations = user.participations.all()
     upi_transaction_id = request.data['upi_transaction_id']
     if len(upi_transaction_id) < 5:
       return JsonResponse({"detail": "Enter a Valid Transaction ID", "success": False},status=400)
@@ -207,14 +209,38 @@ class UserCheckout(APIView):
     t = Transaction(user=user, upi_transaction_id=upi_transaction_id,is_paid=True)
     p_objs = []
 
+    # for p in participations:
+    #   part_q = user.participations.filter(part_id=p)
+    #   _p = part_q.first()
+    #   event_amount += _p.event.entry_fee
+    #   p_objs.append(_p)
+    
     for p in participations:
-      part_q = user.participations.filter(part_id=p)
-      _p = part_q.first()
-      event_amount += _p.event.entry_fee
-      p_objs.append(_p)
+      # part_q = user.participations.filter(part_id=p)
+      # _p = part_q.first()
+      # event_amount += p.event.entry_fee
+      # p_objs.append(p)
+      
+      if not p.is_verified and p.event.team_size == 1:
+         
+          event_amount += p.event.entry_fee
+          p_objs.append(p)
+      else:
+        # print("ijbfijebwejb")
+        # print(_p.captain_paid)
+        # if _p.captain_paid is True:
+        #   _p.captain_paid = False
+        #   _p.save()
+        #   event_amount += _p.event.entry_fee
+        if not p.is_verified and p.captain ==user:
+          # _p.captain_paid = False
+          # _p.save()
+          event_amount += p.event.entry_fee
+          p_objs.append(p)
 
-      if not part_q:
-        return JsonResponse({"detail": "Not Registered for that Event", "success": False},status=400)
+
+      # if not part_q:
+      #   return JsonResponse({"detail": "Not Registered for that Event", "success": False},status=400)
 
     user.money_owed = 0
 

@@ -20,6 +20,7 @@ def check_overlapping(start_time1, end_time1, start_time2, end_time2):
 
 
 def is_time_between(begin_time, end_time, check_time=None):
+    # check_time = check_time or datetime.utcnow().time()
     if begin_time < end_time:
         return begin_time >= check_time and check_time <end_time
     else:
@@ -63,18 +64,32 @@ class EventRegiterView(APIView):
   def post(self, request):
     def update_criteria(user: User, event: Event) -> User:
       user_criteria = json.loads(user.criteria)
+      daywise_criteria = json.loads(user.daywise_criteria)
       print(event.category)
       user_criteria[event.category] += 1
+      print("00event.dayregister",event.day)
+      if event.day == 1:
+          daywise_criteria["1"] += 1
+      elif event.day == 2:
+          daywise_criteria["2"] += 1
+      elif event.day == 3:
+          daywise_criteria["3"] += 1
       user.criteria = json.dumps(user_criteria)
+      user.daywise_criteria = json.dumps(daywise_criteria)
+      user.save()
       return user
 
     # ! CHECK FCRIT ONLY EVENT
     
     def check_event_clashes(user: User, event: Event) -> list:
       participations = user.participations.all()
+      print(participations)
       for p in participations:
         e = p.event
-        if event.day == e.day and is_time_between(e.start, e.end, event.start):
+        print(event.day)
+        print(e.day)
+        print(check_overlapping(e.start, e.end, event.start,event.end))
+        if event.day == e.day and check_overlapping(e.start, e.end, event.start,event.end):
           return [e,True]
       return [None, False]
 
@@ -138,7 +153,7 @@ class EventRegiterView(APIView):
     else:
       # Event is Team Event
       
-      team_name = request.data['team_name'][0]
+      team_name = request.data['team_name']
       members = request.data["members"]
 
       if user.roll_no not in members:
@@ -153,6 +168,8 @@ class EventRegiterView(APIView):
       p = Participation()
       p.event = event
       p.team_name = team_name
+      p.captain_paid = True
+      p.captain = user
       p.save()
 
       
@@ -204,12 +221,26 @@ class EventRegiterView(APIView):
 class EventUnregister(APIView):
   permission_classes = [IsAuthenticated]
   def post(self, request):
-    
-    def update_criteria(user, event):
+    def update_criteria(user: User, event: Event) -> User:
       criteria = json.loads(user.criteria)
+      daywise_criteria = json.loads(user.daywise_criteria)
+      print(event.category)
+      print("mathewa laex hellloansfanfanfkj")
+      print("daywise_Criteria",daywise_criteria)
       criteria[event.category] -= 1
+      if event.day == 1:
+          daywise_criteria["1"] -= 1
+      elif event.day == 2:
+          daywise_criteria["2"] -= 1
+      elif event.day == 3:
+          daywise_criteria["3"] -= 1
+      user.daywise_criteria = json.dumps(daywise_criteria)
+      print("mathewa laex hellloansfanfanfkj")
+      print("daywise_Criteria",user.daywise_criteria)
+      print("00event.dayunregister",event.day)
       user.criteria = json.dumps(criteria)
       user.save()
+      return user
 
     user = request.user
     part_id = request.data["part_id"]
@@ -226,14 +257,16 @@ class EventUnregister(APIView):
 
     members = part.members.all()
     event = part.event
-
+    print("hello my name is mathew alex")
 
     try:
       part.delete()
       print(members)
       for m in members:
         print(m, event.category)
+        print("hello my name is mathew alex part 2")
         update_criteria(m, event)
+        print("hello my name is mathew alex part 3")
       return JsonResponse({"detail": "Participation Successfully Deleted!", "success": True}, status=200)
     except:
       return JsonResponse({"detail": "Something Went Wrong!", "success": False}, status=400)
