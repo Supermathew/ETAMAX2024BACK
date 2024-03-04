@@ -26,6 +26,16 @@ class Event(models.Model):
     ("T", "Technical"),
     ("S", "Sports"),
   )
+  
+  BRANCH = (
+  ("Comp", "Computer"),
+  ("IT", "IT"),
+  ("EXTC", "EXTC"),
+  ("Mech", "Mechanical"),
+  ("Elec", "Electrical"),
+  ("OTHER", "Other")
+)
+  
 
   event_code = models.CharField(_("Event Code"),max_length=36,default=uuid4, unique=True, primary_key=True)
   day = models.SmallIntegerField(_("Day"), choices=DAYS, blank=False)
@@ -43,6 +53,8 @@ class Event(models.Model):
   max_seats = models.IntegerField(_("Maximum Event Seats"),blank=False,default=0)
   category = models.CharField(_("Category"), choices=CATEGORIES, max_length=1, blank=False)
   is_seminar = models.BooleanField(_("Is Event a Seminar"), default=False, blank=False)
+  is_seminar_department = models.BooleanField(_("Is Event a Seminar of Department"), default=False, blank=False)
+  seminar_branch = models.CharField(_("Seminar Branch"), choices=BRANCH, max_length=125, blank=True)
   team_size = models.IntegerField(_("Team Size"), default=1)
   is_team_size_strict = models.BooleanField(_("Is Team Size Strict"), blank=False)
   entry_fee = models.IntegerField(_("Entry Fee"), blank=False, default=0)

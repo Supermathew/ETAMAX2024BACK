@@ -9,7 +9,7 @@ from django.utils.html import format_html
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-  list_filter = ('is_phone_no_verified', 'has_filled_profile', 'is_from_fcrit') #'money_owed')
+  list_filter = ('is_phone_no_verified', 'has_filled_profile', 'is_from_fcrit','email_send') #'money_owed')
   search_fields = ('roll_no', 'name', 'email', 'phone_no')
   list_display=['roll_no','email_send']
   actions = ['emailuser','export_as_csv',]
@@ -90,9 +90,21 @@ class UserRequestAdmin(admin.ModelAdmin):
 @admin.register(Participation)
 class ParticipationAdmin(admin.ModelAdmin):
   search_fields = ('part_id', 'team_name', 'transaction__upi_transaction_id', 'transaction__transaction_id', 'members__name', 'members__roll_no', 'members__email', 'event__title')
-  list_display = ['part_id', 'team_name', 'event', 'transaction', 'is_verified']
+  list_display = ['team_name', 'event','seats','day','category','amount','display_members','is_verified', 'transaction']
   list_filter = ('is_verified', 'event__title')
   actions = ['export_as_csv']
+  
+  def day(self, obj):
+    return obj.event.day
+  def seats(self, obj):
+    return str(obj.event.seats)+"/"+str(obj.event.max_seats)
+  def category(self, obj):
+    return obj.event.category
+  def amount(self, obj):
+    return obj.event.entry_fee
+  def display_members(self, obj):
+    return ', '.join([str(member.roll_no) for member in obj.members.all()])
+  display_members.short_description = 'Members'
 
   @admin.action(description="Download Csv")
   def export_as_csv(self, request, queryset):
@@ -103,12 +115,13 @@ class ParticipationAdmin(admin.ModelAdmin):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=%s.csv' % slugify(model.__name__)
     writer = csv.writer(response)
-    writer.writerow(['Team name','part_id','event','transaction_id','Verified','Members_name'])
+    writer.writerow(['timestamp', 'transaction_id', 'event', 'Team name','day', 'Members_name','Members_rollno','Members_phone_no', 'Verified','entry_fee'])
     for rule in qs:
-        writer.writerow(
-            [rule.team_name,rule.part_id,rule.event.title,rule.transaction,rule.is_verified,'|'.join(c.name+'_'+str(c.roll_no) for c in rule.members.all())]
-        )
-
+      
+        writer.writerow(["-" if rule.transaction is None else rule.transaction.timestamp,rule.transaction,rule.event.title, rule.team_name, rule.event.day
+             ,','.join(str(c.name) for c in rule.members.all())
+             ,','.join(str(c.roll_no) for c in rule.members.all())
+             ,','.join(str(c.phone_no) for c in rule.members.all()),rule.is_verified,rule.event.entry_fee])
     return response
   
 import json
@@ -133,13 +146,16 @@ from django.contrib import admin, messages
 from .models import ExcelData
 import pandas as pd 
 
+def make_roll_no() -> int:
+  return random.randint(9000000, 10000000)
+
 def make_password() -> str:
     return str(uuid4())[-8:]
 
 @admin.register(ExcelData)
 class ExcelDataAdmin(admin.ModelAdmin):
     list_display = ('id', 'upload_date')
-    actions = ['create_users_from_excel']
+    actions = ['create_users_from_excel','create_nonfcritusers_from_excel']
     # create_users_from_excel.short_description = "Create Users from Excel Entries"
 
 
@@ -207,5 +223,48 @@ class ExcelDataAdmin(admin.ModelAdmin):
                 self.message_user(request, f"Users created from {excel_data.excel_file.name}")
             except Exception as e:
                 self.message_user(request, f"Error processing {excel_data.excel_file.name}: {str(e)}", level=messages.ERROR)
+                
+    def create_nonfcritusers_from_excel(self, request, queryset):
+        for excel_data in queryset:
+            try:
+                # Load the Excel file
+                excel_df = pd.read_excel(excel_data.excel_file)
+                for _, row in excel_df.iterrows():
+                      u = [1]
+                      while len(u) > 0:
+                        new_roll_no = make_roll_no()
+                        u = User.objects.filter(roll_no=new_roll_no)
+                      try:
+                        pwd = make_password()
+                        user = User(
+                            roll_no=row['Roll No'],
+                            email=row['Email ID'],
+                            name=row['Name'],
+                            department=row['Department'],
+                            semester=row['Semester'],
+                            phone_no=row['Phone No'],
+                            gender = row['Gender'],
+                            userpassword = pwd,
+                            is_phone_no_verified=True,
+                            has_filled_profile=True,
+                            is_from_fcrit=False,
+                        )
+                        user.set_password(pwd)
+                        print(user)
+                        user.save()
+                      except Exception as e:
+                          print(e)
+                          roll_no = row['Roll No']  # Define the variables here
+                          email = row['Email ID']
+                          text_password = pwd
+                          department = row['Department']
+                          semester = row['Semester']
+                          print(roll_no, email, text_password, department, semester)
+                          print(user)
+                self.message_user(request, f"Users created from {excel_data.excel_file.name}")
+            except Exception as e:
+                self.message_user(request, f"Error processing {excel_data.excel_file.name}: {str(e)}", level=messages.ERROR)
 
     create_users_from_excel.short_description = "Create Users from Excel Entries"
+    
+    create_nonfcritusers_from_excel.short_description = "Create Non Fcrit Users from Excel Entries"

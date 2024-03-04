@@ -15,7 +15,7 @@ from rest_framework.authentication import TokenAuthentication
 
 from transactions.models import Transaction
 
-
+from events.serializers import EventSerializer
 from .models import Participation, User, UserRequest
 from .serializers import ParticipationSerializer, ParticipationSerializer2, UserSerializer, UserRequestSerializer
 from .permissions import IsProfileFilled
@@ -366,3 +366,20 @@ class UserRequestView(APIView):
 
 
 #     return JsonResponse({"data": data_serializer.data}, status=200)
+
+
+class ParticipationStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, format=None):
+        paid_participations = Participation.objects.filter(is_verified=True)
+        unpaid_participations = Participation.objects.filter(is_verified=False)
+
+        paid_serializer = ParticipationSerializer2(paid_participations, many=True)
+        unpaid_serializer = ParticipationSerializer2(unpaid_participations, many=True)
+
+        response_data = {
+            'paid_participations': paid_serializer.data,
+            'unpaid_participations': unpaid_serializer.data
+        }
+
+        return JsonResponse(response_data, status=200)

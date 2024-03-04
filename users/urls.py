@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import  RegisterView, LoginView, LogoutView, OTPVerify, UserDetail, UserCriteria, UserRequestView, UserUpdate, UserCheckout , MakeUsersView, UserExistsView, UserCartUpdate, UserAvatarUpdate, UserRequest #, TeamList
+from .views import  RegisterView, LoginView, LogoutView, OTPVerify, UserDetail, UserCriteria, UserRequestView, UserUpdate, UserCheckout , MakeUsersView, UserExistsView, UserCartUpdate, UserAvatarUpdate, UserRequest,ParticipationStatusView #, TeamList
 
 urlpatterns = [
     path('auth/register/', RegisterView.as_view()),
@@ -14,6 +14,7 @@ urlpatterns = [
     path('exists/', UserExistsView.as_view()),
     path('cart/update/', UserCartUpdate.as_view()),
     path('avatar/update/', UserAvatarUpdate.as_view()),
-    path('request/', UserRequestView.as_view())
+    path('request/', UserRequestView.as_view()),
+    path('paid-unpaid/', ParticipationStatusView.as_view())
     # path('get/teams/bruh55/', TeamList.as_view())
 ]

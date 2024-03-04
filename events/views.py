@@ -105,6 +105,18 @@ class EventRegiterView(APIView):
     # if not user.is_from_fcrit and event.category == 'S':
     #   return JsonResponse({"detail": "Non Fcrit cant register for sports events", "success": False}, status=400)
 
+    if event.is_seminar_department:
+       branch = event.seminar_branch
+       if user.department == "Comp A" or user.department == "Comp B":
+         userbranch = "Comp"
+       elif user.department == "Mech A" or user.department == "Mech B":
+         userbranch = "Mech" 
+       else:
+         userbranch = user.department
+         
+       if branch != userbranch:
+          return JsonResponse({"detail": "The event is currently open for Only Branch sepecific student", "success": False}, status=400)
+
     if event.seats >= event.max_seats:
       return JsonResponse({"detail": "Event Doesn't have Seats Left!", "success": False}, status=400)
 
