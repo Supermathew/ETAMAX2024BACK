@@ -49,7 +49,7 @@ class UserAdmin(admin.ModelAdmin):
         for user in queryset:
             password = user.password
             print(password)
-            subject = "Your User Credentials FACES 2023"
+            subject = "Your User Credentials ETAMAX 2023"
             message = format_html(
                 "Dear {},<br><br>"
                 "Here are your login credentials:<br>"
@@ -60,9 +60,9 @@ class UserAdmin(admin.ModelAdmin):
                 user.name,
                 user.roll_no,
                 user.userpassword,
-                "faces.fcrit.ac.in",  # Change this URL to the login page URL
+                "etamax.fcrit.ac.in",  # Change this URL to the login page URL
             )
-            from_email = "faces@fcrit.ac.in"  # Change this to your email address
+            from_email = "etamax@fcrit.ac.in"  # Change this to your email address
             recipient_list = [user.email]
 
             try:

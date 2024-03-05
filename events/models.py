@@ -24,7 +24,7 @@ class Event(models.Model):
   CATEGORIES = (
     ("C","Cultural"),
     ("T", "Technical"),
-    ("S", "Sports"),
+    ("S", "seminar "),
   )
   
   BRANCH = (

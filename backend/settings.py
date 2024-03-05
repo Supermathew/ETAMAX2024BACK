@@ -207,8 +207,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'SMTP.outlook.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'faces@fcrit.ac.in'  # Your Outlook email address
-EMAIL_HOST_PASSWORD = 'faces@2023'  # Your Outlook email password (consider using app-specific password)
+EMAIL_HOST_USER = 'etamax@fcrit.ac.in'  # Your Outlook email address
+EMAIL_HOST_PASSWORD = 'etamax@2024'  # Your Outlook email password (consider using app-specific password)
 
 
 # MATOR SETTINGS
@@ -270,4 +270,4 @@ MARTOR_MARKDOWN_EXTENSION_CONFIGS = {}
 MARTOR_UPLOAD_URL = '/martor/uploader/' # default
 MARTOR_SEARCH_USERS_URL = '/martor/search-user/' # default
 
-MARTOR_MARKDOWN_BASE_MENTION_URL = 'http://faces.fcrit.ac.in/' # please change this to your domain
+MARTOR_MARKDOWN_BASE_MENTION_URL = 'http://etamax.fcrit.ac.in/' # please change this to your domain
