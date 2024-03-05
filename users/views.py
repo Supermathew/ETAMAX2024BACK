@@ -186,7 +186,7 @@ class UserCheckout(APIView):
       criteria = json.loads(user.criteria)
       daywise_criteria = json.loads(user.daywise_criteria)
       print(criteria)
-      if criteria['C'] >= 2 and criteria['T'] >= 1 and daywise_criteria["1"] >=1 and daywise_criteria["2"] >=1 and daywise_criteria["3"] >= 1:
+      if criteria['C'] >= 1 and criteria['T'] >= 1 and criteria['S'] >= 1 and daywise_criteria["1"] >=1 and daywise_criteria["2"] >=1 and daywise_criteria["3"] >= 1:
         return False
       else:
         return True
