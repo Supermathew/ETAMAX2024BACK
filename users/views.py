@@ -178,6 +178,7 @@ class UserCheckout(APIView):
   permission_classes = [IsAuthenticated, IsProfileFilled]
 
   # ! CHECK CRITERIA COMPLETED
+  
 
   def post(self, request):
     user = request.user
@@ -198,8 +199,8 @@ class UserCheckout(APIView):
     if len(upi_transaction_id) < 5:
       return JsonResponse({"detail": "Enter a Valid Transaction ID", "success": False},status=400)
 
-    if user.is_from_fcrit and check_criteria(user):
-      return JsonResponse({"detail": "Criteria Not Satisfied! Atleast 2 cultural and 1 technical", "success": False}, status=400)
+    # if user.is_from_fcrit and check_criteria(user):
+    #   return JsonResponse({"detail": "Criteria Not Satisfied! Atleast 2 cultural and 1 technical", "success": False}, status=400)
 
     donation = request.data.get('donation_amount', 0)
     if donation and int(donation) < 0:
@@ -270,6 +271,25 @@ class UserCheckout(APIView):
       return JsonResponse({"detail": "Something Went Wrong", "success": False},status=400)
 
 # # CART REALTED
+class CriteriaView(APIView):
+  permission_classes = [IsAuthenticated]
+
+  def get(self, request):
+      user = request.user
+      criteria = json.loads(user.criteria)
+      daywise_criteria = json.loads(user.daywise_criteria)
+      print(criteria)
+      if user.is_from_fcrit:
+        if criteria['C'] >= 1 and criteria['T'] >= 1 and criteria['S'] >= 1 and daywise_criteria["1"] >=1 and daywise_criteria["2"] >=1 and daywise_criteria["3"] >= 1:
+           return JsonResponse({"detail": "Event and Daywise Criteria Passed","criteria":user.criteria,"DayWise Criteria": user.daywise_criteria,"success": True},status=200)
+        else:
+           return JsonResponse({"detail": "Event and Daywise Criteria Failed","criteria":user.criteria,"DayWise Criteria": user.daywise_criteria,"success": False},status=400)
+      else:
+          return JsonResponse({"detail": "Event and Daywise Criteria Passed", "success": True},status=200)
+
+        
+
+
 
 class UserCartUpdate(APIView):
   permission_classes = [IsAuthenticated]
