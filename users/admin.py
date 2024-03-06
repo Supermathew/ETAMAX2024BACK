@@ -49,7 +49,7 @@ class UserAdmin(admin.ModelAdmin):
         for user in queryset:
             password = user.password
             print(password)
-            subject = "Your User Credentials ETAMAX 2023"
+            subject = "Your User Credentials ETAMAX 2024"
             message = format_html(
                 "Dear {},<br><br>"
                 "Here are your login credentials:<br>"
